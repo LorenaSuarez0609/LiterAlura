@@ -15,20 +15,14 @@ public class Autor {
     private Integer fechaDeNacimiento;
     private Integer fechaDeFallecimiento;
     @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<Libro> books;
+    private List<Libro> libros;
 
-
+    public Autor() {}
 
     public Autor(DatosAutor autor){
         this.nombre = autor.nombre();
         this.fechaDeNacimiento = autor.fechaDeNacimiento();
         this.fechaDeFallecimiento = autor.fechaDeFallecimiento();
-    }
-
-    public Autor(Autor autor) {
-        this.nombre = autor.nombre;
-        this.fechaDeNacimiento = autor.fechaDeNacimiento;
-        this.fechaDeFallecimiento = autor.fechaDeFallecimiento;
     }
 
 
@@ -65,11 +59,11 @@ public class Autor {
     }
 
     public List<Libro> getBooks() {
-        return books;
+        return libros;
     }
 
     public void setBooks(List<Libro> books) {
-        this.books = books;
+        this.libros = books;
     }
 
     @Override

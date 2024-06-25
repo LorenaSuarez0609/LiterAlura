@@ -30,17 +30,15 @@ public class Principal {
 
     @SuppressWarnings("resource")
     public void muestraElMenu() {
-        System.out.print("estoy aqui Biblioteca Alura");
-        //Hacer while para mostrar el menu con un swich
 
         while (bandera) {
             System.out.println("Biblioteca Alura");
             System.out.println("""
                     ***********************************************
                     Elija la opcion a traves de su número:
-                    1)Buscar libro por titulo
-                    2)Listar libros Registrados
-                    3)Buscar autor
+                    1)Buscar libro por titulo en la API de gutendex
+                    2)Listar libros Registrados en la Base de Datos Alura
+                    3)Buscar autor en la API
                     4)Listar autores vivos en un determinado año
                     5)Listar libros por idioma
                     0)Salir
@@ -130,8 +128,6 @@ public class Principal {
     private void listarLibrosPorIdioma(String idioma) {
         var json = consumoAPI.obtenerDatos(URL_BASE_Lenguaje+ idioma );
         var datosBusquedaLibros = conversor.obtenerDatos(json, Datos.class);
-        //System.out.println(datosBusquedaLibros );
-        //System.out.println("Libros en Español Encontrados");
         if (datosBusquedaLibros.resultados() != null) {
             System.out.println("""
                                 ************************************************************************************************
@@ -202,28 +198,9 @@ public class Principal {
     }
 
     private void librosRegistrados() {
-    //Muestra todos los datos de la API
-        /*
-        var json = consumoAPI.obtenerDatos(URL_BASE);
-        var datos = conversor.obtenerDatos(json, Datos.class);
-        //System.out.println(datos.resultados());
-        System.out.println("""
-                    ****************************************************************************************************
-                    - lIBROS REGISTRADOS -
-                    """);
-        datos.resultados().stream()
-                .sorted(Comparator.comparing(DatosLibros::numeroDeDescargas).reversed() )
-                .map(l -> l.titulo().toUpperCase())
-                .forEach(System.out::println);
-        System.out.println("""
-                    ****************************************************************************************************
-                    """);
-
-         */
         //desde la Base de datos
-        List<Libro> libros = libroRepositorio.findAll();
-        libros.forEach(System.out::println);
-
+        List<Libro> librosListados = libroRepositorio.findAll();
+        librosListados.forEach(System.out::println);
 
     }
 
@@ -241,7 +218,6 @@ public class Principal {
             //Guardar el libro en la base de datos
             Libro newLibro = new Libro(libroBuscado.get());
             libroRepositorio.save(newLibro);
-            //tipo de dato de autor
         } else {
             System.out.println("libro no encontrado en la API gutedex");
         }

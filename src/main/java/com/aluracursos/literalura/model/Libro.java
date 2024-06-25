@@ -10,13 +10,10 @@ public class Libro {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
-    @Column(unique = true)
     private String titulo;
-    @ManyToOne
-
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "autor_id")
     private Autor autor;
-
     @Enumerated(EnumType.STRING)
     private LenguajeOpciones idiomas;
 
@@ -33,9 +30,17 @@ public class Libro {
                 .get(0);
 
         this.numeroDeDescargas = datosLibros.numeroDeDescargas();
-        //this.autor = datosLibros.autor().get(0).nombre();
+        this.autor = new Autor(datosLibros.autor().get(0));
+
     }
 
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
 
     public String getTitulo() {
         return titulo;
