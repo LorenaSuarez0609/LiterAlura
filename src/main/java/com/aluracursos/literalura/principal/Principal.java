@@ -1,11 +1,12 @@
 package com.aluracursos.literalura.principal;
 
-import com.aluracursos.literalura.model.DatosLibros;
+import com.aluracursos.literalura.model.*;
 import com.aluracursos.literalura.repository.AutorRepository;
 import com.aluracursos.literalura.repository.LibroRepository;
 import com.aluracursos.literalura.service.ConsumoAPI;
 import com.aluracursos.literalura.service.ConvierteDatos;
 import com.aluracursos.literalura.validacion.AllValidations;
+
 
 
 import java.util.*;
@@ -19,10 +20,11 @@ public class Principal {
     private ConvierteDatos conversor = new ConvierteDatos();
     private Scanner teclado = new Scanner(System.in);
     private LibroRepository libroRepositorio;
-    private AutorRepository autorRepository;
+    private AutorRepository autorRepositorio;
     private AllValidations validations = new AllValidations();
     public Principal(LibroRepository libroRepository1, AutorRepository autorRepository) {
             this.libroRepositorio = libroRepository1;
+            this.autorRepositorio = autorRepository;
     }
     private boolean bandera = true;
 
@@ -127,11 +129,24 @@ public class Principal {
 
     private void listarLibrosPorIdioma(String idioma) {
         var json = consumoAPI.obtenerDatos(URL_BASE_Lenguaje+ idioma );
-        DatosLibros datosBusquedaLibros = conversor.obtenerDatos(json, DatosLibros.class);
-        System.out.println(datosBusquedaLibros );
-        System.out.println("Libros en Español Encontrados");
-
-
+        var datosBusquedaLibros = conversor.obtenerDatos(json, Datos.class);
+        //System.out.println(datosBusquedaLibros );
+        //System.out.println("Libros en Español Encontrados");
+        if (datosBusquedaLibros.resultados() != null) {
+            System.out.println("""
+                                ************************************************************************************************
+                                - LIBROS ENCONTRADOS -""");
+            datosBusquedaLibros.resultados().stream()
+                    .sorted(Comparator.comparing(DatosLibros::numeroDeDescargas).reversed())
+                    .map(l -> l.titulo().toUpperCase())
+                    .forEach(System.out::println);
+            System.out.println("""
+                                ************************************************************************************************
+                                """);
+        }
+        if (datosBusquedaLibros.resultados() == null) {
+            System.out.println("No hay libros que listar");
+        }
     }
 
     private void ListarAutoresVivos() {
@@ -139,8 +154,25 @@ public class Principal {
         int comienzo = Integer.parseInt(teclado.nextLine());
         if(comienzo >=0 & comienzo <=2024) {
             var json = consumoAPI.obtenerDatos(URL_BASE + "?author_year_start=" + comienzo + "&author_year_end=" + comienzo);
+            var datosPorAno = conversor.obtenerDatos(json, Datos.class);
+            if (datosPorAno.resultados() != null) {
+                System.out.println("""
+                            ************************************************************************************************
+                            - Libros de Autores vivos en el año:""" + comienzo);
+                datosPorAno.resultados().stream()
+                        .sorted(Comparator.comparing(DatosLibros::numeroDeDescargas).reversed())
+                        .map(l -> l.titulo().toUpperCase())
+                        .forEach(System.out::println);
+                System.out.println("""
+                            ************************************************************************************************
+                            """);
+            }
+            if (datosPorAno.resultados() == null) {
+                System.out.println("No hay libros que listar");
+            }
+        } else {
+            System.out.println("AÑO INCORREPTO");
         }
-
     }
 
     private void ListarAutoresPorNombre() {
@@ -148,13 +180,50 @@ public class Principal {
         var autorBuscado = teclado.nextLine();
         var json = consumoAPI.obtenerDatos(URL_BASE_Actores + autorBuscado.replace(" ", "+") + "%20great");
         System.out.println(json);
+        Datos autorBuscadoDatos = conversor.obtenerDatos(json, Datos.class);
+        System.out.println(autorBuscadoDatos.resultados());
+        if (autorBuscadoDatos.resultados() != null) {
+            System.out.println("""
+                        ************************************************************************************************
+                        - Autor Encontrado -
+                        """);
+            autorBuscadoDatos.resultados().stream()
+                    .sorted(Comparator.comparing(DatosLibros::hashCode).reversed() )
+                    .map(l -> l.titulo().toUpperCase())
+                    .forEach(System.out::println);
+            System.out.println("""
+                        ************************************************************************************************
+                        """);
+        } else {
+            System.out.println("Autor No Encontrado");
+        }
 
 
     }
 
     private void librosRegistrados() {
     //Muestra todos los datos de la API
+        /*
         var json = consumoAPI.obtenerDatos(URL_BASE);
+        var datos = conversor.obtenerDatos(json, Datos.class);
+        //System.out.println(datos.resultados());
+        System.out.println("""
+                    ****************************************************************************************************
+                    - lIBROS REGISTRADOS -
+                    """);
+        datos.resultados().stream()
+                .sorted(Comparator.comparing(DatosLibros::numeroDeDescargas).reversed() )
+                .map(l -> l.titulo().toUpperCase())
+                .forEach(System.out::println);
+        System.out.println("""
+                    ****************************************************************************************************
+                    """);
+
+         */
+        //desde la Base de datos
+        List<Libro> libros = libroRepositorio.findAll();
+        libros.forEach(System.out::println);
+
 
     }
 
@@ -162,7 +231,37 @@ public class Principal {
         System.out.println("Ingrese el nombre del libro que desee buscar");
         var tituloLibro = teclado.nextLine();
         var json = consumoAPI.obtenerDatos(URL_BASE + "?search=" + tituloLibro.replace(" ", "+"));
+        //Convierto los datos para poder mostrarlos en la terminal
+        var datosBusqueda = conversor.obtenerDatos(json, Datos.class);
+        Optional<DatosLibros> libroBuscado = datosBusqueda.resultados().stream()
+                .filter(l -> l.titulo().toUpperCase().contains(tituloLibro.toUpperCase()))
+                .findFirst();
+        if (libroBuscado.isPresent()) {
+            mostrarLibro(libroBuscado.get());
+            //Guardar el libro en la base de datos
+            Libro newLibro = new Libro(libroBuscado.get());
+            libroRepositorio.save(newLibro);
+            //tipo de dato de autor
+        } else {
+            System.out.println("libro no encontrado en la API gutedex");
+        }
+
     }
+
+
+    private void mostrarLibro(DatosLibros libroDatos) {
+        System.out.println("""
+                        ****************************************************************************************************
+                                                  Libro Encontrado""");
+        System.out.println("Titulo: " + libroDatos.titulo());
+        System.out.println("Autor: " + libroDatos.autor());
+        System.out.println("Idiomas: " + libroDatos.idiomas());
+        System.out.println("Descargas: " + libroDatos.numeroDeDescargas());
+        System.out.println("""
+                        *****************************************************************************************************
+                        """);
+    }
+
 
 
 }

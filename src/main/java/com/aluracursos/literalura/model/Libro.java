@@ -24,7 +24,7 @@ public class Libro {
 
     public Libro(){}
 
-    public Libro(DatosLibros datosLibros, Autor autor){
+    public Libro(DatosLibros datosLibros){
         this.titulo = datosLibros.titulo();
 
         this.idiomas = datosLibros.idiomas().stream()
@@ -33,10 +33,8 @@ public class Libro {
                 .get(0);
 
         this.numeroDeDescargas = datosLibros.numeroDeDescargas();
-        this.autor = autor;
+        //this.autor = datosLibros.autor().get(0).nombre();
     }
-
-
 
 
     public String getTitulo() {

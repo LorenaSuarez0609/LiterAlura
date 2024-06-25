@@ -17,12 +17,18 @@ public class Autor {
     @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Libro> books;
 
-    public Autor(){}
+
 
     public Autor(DatosAutor autor){
-    this.nombre = autor.nombre();
-    this.fechaDeNacimiento = autor.fechaDeNacimiento();
-    this.fechaDeFallecimiento = autor.fechaDeFallecimiento();
+        this.nombre = autor.nombre();
+        this.fechaDeNacimiento = autor.fechaDeNacimiento();
+        this.fechaDeFallecimiento = autor.fechaDeFallecimiento();
+    }
+
+    public Autor(Autor autor) {
+        this.nombre = autor.nombre;
+        this.fechaDeNacimiento = autor.fechaDeNacimiento;
+        this.fechaDeFallecimiento = autor.fechaDeFallecimiento;
     }
 
 
